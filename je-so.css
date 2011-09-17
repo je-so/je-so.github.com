@@ -1,0 +1,90 @@
+/*
+ * CSS für je-so html Seiten *
+ */
+
+/*
+ * reset default *
+ */
+
+
+a, blockquote, body, code,
+div, dl, dt, dd,
+form, fieldset,
+h1, h2, h3, h4, h5, h6, img, kbd,
+nav, p, pre, ol, section, ul, var {
+   border: 0; margin: 0; padding: 0;
+   font-family: inherit; font-size: inherit; font-style: inherit;
+   font-variant: inherit; font-weight: inherit;
+   vertical-align: baseline;
+   background-color: transparent;
+}
+
+ol,ul {
+   list-style: none;
+}
+
+/* Seitengestaltung */
+
+body
+{
+   background-color: #fff;
+   color: #333; font: normal 14pt Serif;
+   margin: 28pt 30pt;
+}
+
+/* Links */
+
+a {
+   color: #3917FF; cursor: pointer; text-decoration: none;
+}
+
+a:hover {
+   text-decoration: underline;
+}
+
+a.feed {
+   margin-left: 3px;
+   padding: 0 0 0 19px;
+   background: url("img/feed-icon-14x14.png") no-repeat 0 50%;
+}
+
+a.download {
+   border: 1px solid #C77500;
+   border-radius: 8px;
+   background-color: #FF9700;
+   color: #fff;
+   margin: 5px;
+   padding: 5px;
+   text-shadow: #666666 1px 1px 1px;
+}
+
+a.download:hover {
+   border: 1px solid #FF9700;
+   background-color: #FFA92E;
+   text-decoration: none;
+}
+
+/* Header und Absätze */
+
+h1 {
+   color: #AE763B;
+   font-size: 150%; font-weight: bold;
+   margin-bottom: .3em;
+}
+
+h2 {
+   color: #AE763B;
+   font-size: 120%; font-weight: bold;
+   margin: 1.2em 0 .2em;
+}
+
+h3 {
+   color: #AE763B;
+   font-size: 110%; font-weight: bold;
+   margin: 1.2em 0 .2em;
+}
+
+p {
+   margin: 0 0 1em;
+}
+
