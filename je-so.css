@@ -49,12 +49,13 @@ a.feed {
 }
 
 a.download {
+   background: url("img/download-14x14.png") no-repeat 5px 50%;
+   background-color: #FF9700;
    border: 1px solid #C77500;
    border-radius: 8px;
-   background-color: #FF9700;
    color: #fff;
    margin: 5px;
-   padding: 5px;
+   padding: 5px 5px 5px 24px;
    text-shadow: #666666 1px 1px 1px;
 }
 
