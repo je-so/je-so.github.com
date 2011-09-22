@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Github user je-so homepage' name='description' />
+   <meta content='C99,Database,Entwurf' name='keywords' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>Design threadpool_t</title>
+   <link href='../icon.png' rel='shortcut icon' type='image/png' />
+   <link href='../je-so.css' rel='stylesheet' type='text/css' media='all' />
+</head>
+<body>
+
+<div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
+<a href='../index.html'>« Home</a> | <a href='../index.html'>Next »</a></div>
+<h1 class='title'>Thread Pool</h1>
+<h2 class='subtitle'> Integration eines Threadpools in ein synchrones,<br>kooperatives Threadmodell.</h2>
+<div class='date'>Donnerstag, 22. September 2011</div>
+
+<h3>Motivation</h3>
+<p>Die jetzige Implementierung von Multitasking benutzt synchrone, kooperative Threads, sogenannte <code>exothread_t</code>.
+   Die auszuführenden Exothreads werden verwaltet von einem <code>exoscheduler_t</code>, der die aktiven unter ihnen in
+   einer <code>runlist</code> speichert.</p>
+<p>Der Nachteil einer kooperativen Threadimplementierung ist die Möglichkeit, zu lange die Rechenzeit zu beanspruchen,
+   ohne zwischenzeitlich die CPU Ressource weiterzu&shy;rei&shy;chen. Dieser Nachteil muß in jedem Fall bei
+   blockierenden Systemaufrufen in Kauf ge&shy;nom&shy;men werden.</p>
+<pre class='diagram' style='margin-left: auto; margin-right: auto; width:90%;'>
+              ╭────────────────╮
+              │ exoscheduler_t │
+              ├────────────────┤1         n╭─────────────╮
+              │ runlist        ┼──────────●│ exothread_t │
+              ╰────────────────╯   run▸    ╰──────┬──────╯
+                                                  │
+              ╭───────────────╮                   │
+              │ System/OS API │───────────────────┘
+              ╰───────┬───────╯            ◂calls
+               splits ∆ into
+    ╭──────────────╮  │  ╭──────────────────╮
+    │ Blocking Call├──┴──┤ Non Blocking Call│
+    ╰──────────────╯     ╰──────────────────╯
+       ┊┌┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┐
+       └┊ <i>↯ prevents execution of other exothreads</i> ┊
+        └┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┘
+</pre>
+<div class='label'>Abbildung 1: Scheduler und synchrone, kooperative (exo)Threads</div>
+
+<h4>Lösungs Idee</h4>
+<p>Eine einfache Lösung ist es, den aktuellen Thread eine Art Signal absenden zu lassen, bevor er einen
+   blockierenden Systemaufruf tätigt. Dieses Signal bewirkt, daß ein neuer Systemthread gestartet wird, der
+   das Ausführen von <code>exothread_t.run</code> innerhalb von <code>exoscheduler_t</code> übernimmt.</p>
+<p>Sobald der blockierende Aufruf zurückkehrt, sorgt ein neues Signal dafür, daß der ältere Thread wieder
+   die Kontrolle übernimmt, sobald der neue Systemthread <code>exoscheduler_t</code> verlassen hat.</p>
+<p>Da das Starten und Beenden von Systemthreads auf Dauer zu teuer ist, muß der neu einzuführende
+   <code>threadpool_t</code> mehrere Systemthreads parken und auf Abruf bereitstellen.</p>
+<pre class='diagram' style='margin-left: auto; margin-right: auto; width:90%;'>
+                  ◂request new
+ ╭──────────────╮1 thread     n╭────────────────╮
+ │ threadpool_t ├─────────────●│ exoscheduler_t │
+ ╰──────┬1──────╯ ◂release     ╰⇡──────┬────────╯
+        │                       ┊      │ ▾run
+        │              ▴signals ┊      │
+╭───────●n──────╮        enter  ┊     ...
+│ System Thread │               ┊     ...
+╰───────────────╯      ▴signals ┊      │ ▾calls system
+                         exit   ┊      │
+                        ╭───────┴──────↓────────╮
+                        │ Blocking Call Wrapper │
+                        ╰──────────────┬────────╯
+                                       │ ▾calls
+                                ╭──────↓────────╮
+                                │ System/OS API │
+                                ╰───────────────╯
+</pre>
+<div class='label'>Abbildung 2: Threads auf Bedarf von Threadpool abrufen</div>
+
+<div class='footer'>&copy; 2011 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>

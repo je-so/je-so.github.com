@@ -1,11 +1,10 @@
 /*
- * CSS für je-so html Seiten *
+ * CSS je-so homepage *
  */
 
 /*
  * reset default *
  */
-
 
 a, blockquote, body, code,
 div, dl, dt, dd,
@@ -15,6 +14,7 @@ nav, p, pre, ol, section, ul, var {
    border: 0; margin: 0; padding: 0;
    font-family: inherit; font-size: inherit; font-style: inherit;
    font-variant: inherit; font-weight: inherit;
+   text-align: left;
    vertical-align: baseline;
    background-color: transparent;
 }
@@ -23,16 +23,9 @@ ol,ul {
    list-style: none;
 }
 
-/* Seitengestaltung */
-
-body
-{
-   background-color: #fff;
-   color: #333; font: normal 14pt Serif;
-   margin: 28pt 30pt;
-}
-
-/* Links */
+/*
+ * <a> element *
+ */
 
 a {
    color: #3917FF; cursor: pointer; text-decoration: none;
@@ -65,27 +58,122 @@ a.download:hover {
    text-decoration: none;
 }
 
-/* Header und Absätze */
+/*
+ * <code> <pre> <var> element *
+ */
+
+code, pre, var  {
+   font-family: FreeMono, 'Nimbus Mono L', 'DejaVu Sans Mono', monospace;
+}
+
+pre {
+   line-height: 1em;
+   margin: 0.8em auto 0;
+   width: 90%;
+}
+
+.diagram {
+   border: 1px solid #CCC; border-radius: 10px; box-shadow: 1px 1px 3px #666;
+   padding: 0.5em 1em;
+}
+
+.diagram + .label {
+   margin: 0.1em auto 0;
+   width: 90%;
+}
+
+/*
+ * <h1-9> elements *
+ */
 
 h1 {
    color: #AE763B;
-   font-size: 150%; font-weight: bold;
-   margin-bottom: .3em;
+   font-size: 19pt; font-weight: bold;
+   margin-top: 28pt;
 }
 
 h2 {
    color: #AE763B;
-   font-size: 120%; font-weight: bold;
-   margin: 1.2em 0 .2em;
+   font-size: 15pt; font-weight: bold;
+   margin-top: 17pt;
 }
 
 h3 {
    color: #AE763B;
-   font-size: 110%; font-weight: bold;
-   margin: 1.2em 0 .2em;
+   font-size: 14pt; font-weight: bold;
+   margin-top: 17pt;
 }
+
+h4 {
+   color: #AE763B;
+   font-size: 14pt; font-style: italic; font-weight: normal;
+   margin-top: 0.8em;
+}
+
+/*
+ * <p> element *
+ */
 
 p {
-   margin: 0 0 1em;
+   margin-top: 0.7em;
 }
 
+h1 + p, h2 + p, h3 + p, h4 + p {
+   margin-top: 0.1em;
+}
+
+/*
+ * <header> *
+ */
+
+.date {
+   font-size: 10pt;
+   color: #AAA;
+}
+
+.preamble {
+   color: #CC7900;
+   text-align: left;
+}
+
+.preamble .nav {
+   float: right;
+}
+
+.title, .subtitle {
+   font-family: 'Liberation Serif',Georgia,Times,serif ;
+}
+
+.title {
+   font-size: 18pt;
+}
+
+.subtitle {
+   font-size: 14pt;
+}
+
+/*
+ * Layout *
+ */
+
+body
+{
+   background-color: #fff;
+   color: #333; font: normal 11.7pt/1.4em 'Liberation Sans',Arial,Helvetica,sans-serif;
+   margin: 14pt auto 28pt; padding: 1em 2em;
+   position: relative;
+   width: 40em;
+}
+
+.footer {
+   border-top: 1px dotted #CCC;
+   color: #666;
+   font-size: 10pt;
+   margin: 28pt 0 0;
+}
+
+/* Layout:margin */
+
+*:first-child {
+   margin-top: 0;
+}
