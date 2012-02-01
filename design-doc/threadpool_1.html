@@ -2,17 +2,16 @@
 <html lang='de'>
 <head>
    <meta charset='utf-8' />
-   <meta content='Github user je-so homepage' name='description' />
-   <meta content='C99,Database,Entwurf' name='keywords' />
+   <meta content='Reasoning about a threadpool' name='description' />
    <meta content='Jörg Seebohn' name='author' />
-   <title>Design threadpool_t</title>
+   <title>threadpool_t</title>
    <link href='../icon.png' rel='shortcut icon' type='image/png' />
    <link href='../je-so.css' rel='stylesheet' media='all' />
 </head>
 <body>
 
 <div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
-<a href='../index.html'>« Home</a> | <a href='../index.html'>Next »</a></div>
+<a href='../index.html'>Home</a> | <a href='asynccall_1.html'>Next »</a></div>
 <h1 class='title'>Thread Pool</h1>
 <h2 class='subtitle'> Integration eines Threadpools in ein synchrones,<br>kooperatives Threadmodell.</h2>
 <div class='date'>Donnerstag, 22. September 2011</div>
@@ -24,7 +23,7 @@
 <p>Der Nachteil einer kooperativen Threadimplementierung ist die Möglichkeit, zu lange die Rechenzeit zu beanspruchen,
    ohne zwischenzeitlich die CPU Ressource weiterzu&shy;rei&shy;chen. Dieser Nachteil muß in jedem Fall bei
    blockierenden Systemaufrufen in Kauf ge&shy;nom&shy;men werden.</p>
-<pre class='diagram' style='margin-left: auto; margin-right: auto; width:90%;'>
+<pre class='diagram'>
               ╭────────────────╮
               │ exoscheduler_t │
               ├────────────────┤1         n╭─────────────╮
@@ -52,7 +51,7 @@
    die Kontrolle übernimmt, sobald der neue Systemthread <code>exoscheduler_t</code> verlassen hat.</p>
 <p>Da das Starten und Beenden von Systemthreads auf Dauer zu teuer ist, muß der neu einzuführende
    <code>threadpool_t</code> mehrere Systemthreads parken und auf Abruf bereitstellen.</p>
-<pre class='diagram' style='margin-left: auto; margin-right: auto; width:90%;'>
+<pre class='diagram'>
                   ◂request new
  ╭──────────────╮1 thread     n╭────────────────╮
  │ threadpool_t ├─────────────●│ exoscheduler_t │

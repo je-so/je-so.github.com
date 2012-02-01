@@ -1,0 +1,41 @@
+/*
+ * C Programming Language
+ */
+
+.Clang .char {
+   color: #800000;
+}
+
+.Clang .comment {
+   color: #0080C0;
+}
+
+.Clang .commentline {
+   color: #008000;
+}
+
+.Clang .key {
+   font-weight: bold;
+   color: #0000FF;
+}
+
+.Clang .localvar {
+   color: #804000;
+}
+
+.Clang .number {
+   color: #0000FF;
+}
+
+.Clang .param {
+   font-style: italic;
+   color: #804000;
+}
+
+.Clang .string {
+   color: #800000;
+}
+
+.Clang .type {
+   font-weight: bold;
+}

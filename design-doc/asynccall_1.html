@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Reasoning about a async system calls' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>asyncio</title>
+   <link href='../icon.png' rel='shortcut icon' type='image/png' />
+   <link href='../je-so.css' rel='stylesheet' media='all' />
+   <link href='../c-lang.css' rel='stylesheet' media='all' />
+</head>
+<body>
+
+<div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
+<a href='threadpool_1.html'>« Prev</a> | <a href='../index.html'>Home</a></div>
+<h1 class='title'>Asynchrone Systemaufrufe</h1>
+<h2 class='subtitle'>Warum ein Threadpool komplizierter ist als asynchrone Calls</h2>
+<div class='date'>Samstag, 04. Februar 2012</div>
+
+
+<h3>Blockierende Systemaufrufe</h3>
+<p>Natürlich unterbricht jeder noch so kleine Systemaufruf die Ausführung des eigenen Programmes. Je nach Art des Aufrufes kommen so kürzere oder längere Wartezeiten auf die Rückkehr aus dem Kernel zustande.
+   Unter einem blockierenden Aufruf verstehe ich hier das Warten auf eine Ressource, etwa auf eine Nachricht in der Netzwerkqueue des Prozesses oder das Laden von Daten auf der Festplatte.</p>
+
+<p>Im Falle eines blockierenden Aufrufes ist es erforderlich, daß synchron kurz vor dem Aufruf ein neuer Thread gestartet wird und die Aufgaben des aktuellen übernimmt. Klingt einfach, ist es aber nicht.</p>
+
+<p>Dazu ist zu sagen, daß jeder Systemaufruf künstlich unterschieden werden muß in blockierend und nichtblockierend. Zudem darf nie vergessen werden, im Falle des Blockierens, einen neuen Thread zu starten und diesen nach dem Aufruf auch wieder zu beenden. Ohne aspektorientierte Programmierumgebung bzw. einer anderen Möglichkeit zur Implementation von <i lang="en">cross-cutting concerns</i> ein Wartungsalptraum.</p>
+
+<p>Ein weiteres Problem ist die Synchronisation zwischen den Ressourcen der einzelnen Tasks. Ein blockierter Task muß sich vor dem Systemaufruf aus der Liste der aktiven Tasks herausnehmen und die Ressourcen, mit denen er arbeitet, müssen speziell ausgezeichnet, d.h. gelockt werden, damit es zu keiner <i lang="en">race condition</i> kommt.</p>
+
+<pre class='diagram Clang'>
+<span class='key'>int</span> <span class='localvar'>reader_task</span>(<span class='type'>size_t</span> <span class='param'>datalen</span>, <span class='key'>char</span> <span class='param'>data</span>[<span class='param'>datalen</span>])
+{
+   <span class='key'>int</span> <span class='localvar'>err</span> ;
+   <span class='type'>file_t</span> <span class='localvar'>file</span> ;
+   ...
+
+   lock_data(<span class='param'>datalen</span>, <span class='param'>data</span>) ;
+
+   enter_blocking_call() ; <span class='commentline'>// remove task from active list</span>
+   <span class='commentline'>// from here on another thread is scheduled for execution</span>
+   <span class='localvar'>err</span> = read_from_file(&amp;<span class='localvar'>file</span>, <span class='param'>datalen</span>, <span class='param'>data</span>)
+   leave_blocking_call() ; <span class='commentline'>// set task as active </span>
+
+   unlock_data(<span class='param'>datalen</span>, <span class='param'>data</span>) ;
+
+   <span class='key'>return</span> <span class='localvar'>err</span> ;
+}
+</pre>
+<div class='label'>Abbildung 1: Blockierender Thread</div>
+
+<h3>Asynchrone Systemaufrufe</h3>
+
+<p>Asynchrone Systemaufrufe sind in einigen Fällen nicht notwendig, wenn etwa aus einer Netzwerkqueue nur soviel an Daten gelesen werden, wie vorhanden sind. In anderen Fällen wie Dateizugriffe erfordern Sie eine spezielle, oft vom Betriebssystem abhängende Art des Zugriffs.
+   In jedem Fall erfordern sie eine zusätzliche Verwaltung der Ressourcen, die gerade in asynchroner Bearbeitung sind.</p>
+
+<p>Da jetzt aber immer nur ein Thread Zugriff auf die Ressourcen hält, sind Locking&shy;operationen überflüssig. Aktuell in Bearbeitung befindliche Ressourcen sind allerdings in einer Warteschlange zu halten, bis die asynchrone Operation abgeschlossen ist.
+   Statt eines Locks, der implizit eine Art von »in Bearbeitung«-Zustand setzt, ist dies jetzt durch die Warteliste explizit ersichtlich.</p>
+
+<p>Aus den Ausführungen sollte klar werden, daß der Aufwand nicht höher ist, jedoch eine etwas andere Architektur erfordert mit dem großen Vorteil der expliziten Information, welche Ressourcen gerade in Bearbeitung sind. Ein weiterer, noch größerer Vorteil scheint mir zu sein, auf jegliche Locks (<code>mutex_t</code>) verzichten zu können und damit eine potenzielle Fehlerquelle <b>komplett auszuschließen</b> !</p>
+
+<p>Zusätzlich ist noch eine Art von synchronem Task zu programmieren, im vorherigen Entwurfsdokument als <code>exothread_t</code> bezeichnet, im folgenden Beispiel als <code>synctask_t</code>. Auch wenn sich der Name noch ändern wird, so ist es mit dieser Technik möglich, ein Taskswitching in C zu implementieren, ohne auf Threads zurückgreifen zu müssen.</p>
+
+<p>Sie können sich den <a href='https://github.com/je-so/js-projekt/blob/f63813f6d8ff46842b24f835f35983bcab88efe3/C-kern/api/platform/task/exothread.h'>Quellcode</a> zur älteren <code>exothread_t</code> Implementierung anschauen.
+   Wobei Funktionen wie <code>waitevent</code> noch nicht implementiert sind.</p>
+
+<pre class='diagram Clang'>
+<span class='key'>int</span> <span class='localvar'>reader_task</span>(<span class='type'>synctask_t</span> <span class='param'>* task</span>,
+                <span class='type'>size_t</span> <span class='param'>datalen</span>, <span class='key'>char</span> <span class='param'>data</span>[<span class='param'>datalen</span>])
+{
+   <span class='key'>int</span> <span class='localvar'>err</span> ;
+   <span class='type'>file_t</span>         <span class='localvar'>file</span> ;
+   <span class='type'>eventid_t</span>      <span class='localvar'>eventid</span> ;
+   <span class='type'>asyncioqueue_t</span> * <span class='localvar'>queue</span> ;
+   ...
+
+   <span class='localvar'>eventid</span> = add_readcmd_asyncioqueue(&amp;<span class='localvar'>queue</span>, &amp;<span class='localvar'>file</span>,
+                                      <span class='param'>datalen</span>, <span class='param'>data</span>) ;
+   <span class='commentline'>// put task in wait queue </span>
+   waitevent_synctask(<span class='param'>task</span>, <span class='localvar'>eventid</span>) ;
+
+   <span class='localvar'>err</span> = getstatus_asyncioqueue(&amp;<span class='localvar'>queue</span>, <span class='localvar'>eventid</span>) ;
+   remove_cmd_asyncioqueue(&amp;<span class='localvar'>queue</span>, <span class='localvar'>eventid</span>) ;
+
+   <span class='key'>return</span> <span class='localvar'>err</span> ;
+}
+</pre>
+</pre>
+<div class='label'>Abbildung 2: Synchroner Task mit Warteliste</div>
+
+<div class='footer'>&copy; 2012 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>
