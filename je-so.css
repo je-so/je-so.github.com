@@ -24,6 +24,15 @@ ol,ul {
 }
 
 /*
+ * load fonts
+ */
+
+@font-face { font-family: FreeMono; src: url(fonts/FreeMono.ttf); }
+@font-face { font-family: FreeMono; font-style: italic; src: url(fonts/FreeMonoOblique.ttf); }
+@font-face { font-family: FreeMono; font-weight: bold; src: url(fonts/FreeMonoBold.ttf); }
+@font-face { font-family: FreeMono; font-weight: bold; font-style: italic; src: url(fonts/FreeMonoBoldOblique.ttf); }
+
+/*
  * <a> element *
  */
 
@@ -63,7 +72,7 @@ a.download:hover {
  */
 
 code, pre, var  {
-   font-family: FreeMono, 'Nimbus Mono L', 'DejaVu Sans Mono', monospace;
+   font-family: FreeMono, 'Nimbus Mono L', monospace;
 }
 
 pre {
