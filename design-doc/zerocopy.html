@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Zero copy architectures' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>Zero-copy</title>
+   <link href='../icon.png' rel='shortcut icon' type='image/png' />
+   <link href='../je-so.css' rel='stylesheet' media='all' />
+   <link href='../c-lang.css' rel='stylesheet' media='all' />
+</head>
+<body>
+
+<div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
+<a href='asynccall_1.html'>« Prev</a> | <a href='../index.html'>Home</a></div>
+<h1 class='title'>Zero Copy Architektur</h1>
+<h2 class='subtitle'>Warum Daten unnötig zu kopieren immer eine schlechte Idee ist</h2>
+<div class='date'>Mittwoch, 04. Juli 2012</div>
+
+
+<h3>Systemwachstum</h3>
+<p>Wenn Architekturen »wachsen« kommen immer neue Schichten an Funktionalitäten hinzu mit ihren eigenen Konventionen der Datenrepräsentation. Konvertierungen sind daher unvermeidlich. Transformation von Darstellungen erfordern auch immer das Lesen und Schreiben von Daten aus und in den Speicher.</p>
+
+<p>Speicheroperationen sind mit den heutigen Rechnerarchitekturen im schlimmsten Fall zwischen 2 und 3 Größenordnungen langsamer. Werden von der Architektur keine Wege und Mittel vorgesehen, unnötige Kopiervorgänge und Konvertierungen zu vermeiden, so werden darauf basierende Programme &mdash; ausreichendes Wachstum vorausgesetzt &mdash; sich mehr und mehr gefühlt »träge» verhalten, weil die Speicherbandbreite zum limitieren Faktor wird.</p>
+
+<h3>Mittel und Wege</h3>
+<p>Zur Vermeidung von unnötigen Konvertierungen ist ein möglichst universelles Datenformat zu erfinden. Dieser Prozess ist, betrachtet man die aktuelle SQL- und Objekt-Schicht »Konvertierungs«-Problematik, noch lange nicht abgeschlossen.</p>
+
+<p>Unnötiges Kopieren lässt sich am besten vermeiden, indem direkt auf der untersten Implementierungsebene Mechanismen angeboten werden. Die Zero-copy Mechanismen der Betriebssysteme sind hier nur rudimentär entwickelt. Anstatt jedoch Log-Buffer zu reservieren und dann per »write« in die Datei zu kopieren, ist es per »memory mapped Files« möglich, den Log-Buffer direkt als Teil der Datei auszuzeichnen.</p>
+
+<p>Obgleich interne Datenstrukturen, ein simpler Stack etwa, mit einem angepassten API dem Zero-copy Rechnung tragen müssen, verhindert eine durchgängige Berücksichtigung dieses Prinzips jedoch das »Trägheitsprinzip« von Software, bei dem die Speicherbandbreite zum limitierenden Faktor wird.</p>
+
+<pre class='diagram Clang'>
+<span class='commentline'>// old API</span>
+<span class='comment'>/* function: push_binarystack
+ * Diese Funktion kopiert initialisierte Daten auf den Stack.
+ * Zum Initialisieren kommt noch ein Kopiervorgang hinzu. */</span>
+<span class='key'>int</span> <span class='localvar'>push_binarystack</span>(<span class='type'>binarystack_t</span> * <span class='param'>stack</span>,
+                     <span class='type'>size_t</span> <span class='param'>size</span>, <span class='key'>const</span> <span class='type'>uint8_t</span> <span class='param'>data</span>[<span class='param'>size</span>]) ;
+
+<span class='commentline'>// Datenflussskizze</span>
+╭──────────────────────────╮    ╭───────────────────────╮
+│ Thread 1                 │    │ binarystack_t stack   │
+├──────────────────────────┤    ├───────────────────────┤
+ treepos_t  iter ;               stack-top ╮
+ <span class='comment'>... depth first search ...</span>                │
+ push_binarystack(... &iter); ─→      ╭────┴────────────╮
+                            copies▸   │ saved treepos_t │
+                            data      ╰────┬────────────╯
+                                 stack-top ╯ after push
+
+<span class='commentline'>// new API</span>
+<span class='comment'>/* function: push_binarystack
+ * Der Pointer auf einen neu reservierten Speicherbereich
+ * auf dem Stack wird zurückgegeben. Der Client muss die
+ * Daten direkt auf dem Stack initialisieren. */</span>
+<span class='key'>int</span> <span class='localvar'>push_binarystack</span>(<span class='type'>binarystack_t</span> * <span class='param'>stack</span>,
+                     <span class='type'>size_t</span> <span class='param'>size</span>, <span class='comment'>/*out*/</span><span class='type'>uint8_t</span> ** <span class='param'>data</span>) ;
+
+<span class='commentline'>// Datenflussskizze</span>
+╭──────────────────────────╮    ╭───────────────────────╮
+│ Thread 1                 │    │ binarystack_t stack   │
+├──────────────────────────┤    ├───────────────────────┤
+ treepos_t  * iter ;             stack-top ╮
+ push_binarystack(... &iter); ─→      ╭────┴────────────╮
+                            ←─returns │ empty memory    │
+                              address ╰─∆──┬────────────╯
+      *iter ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┘  ╰─ stack-top
+ <span class='comment'>... depth first search ...</span>                   after push
+ <span class='comment'>... uses iterator ref ...</span>
+</pre>
+<div class='label'>Abbildung 1: Zero-copy Stack API</div>
+
+<div class='footer'>&copy; 2012 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>

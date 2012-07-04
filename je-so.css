@@ -109,13 +109,13 @@ h2 {
 
 h3 {
    color: #AE763B;
-   font-size: 14pt; font-weight: bold;
+   font-size: 14pt; font-weight: normal;
    margin-top: 17pt;
 }
 
 h4 {
    color: #AE763B;
-   font-size: 14pt; font-style: italic; font-weight: normal;
+   font-size: 13pt; font-style: italic; font-weight: normal;
    margin-top: 0.8em;
 }
 
