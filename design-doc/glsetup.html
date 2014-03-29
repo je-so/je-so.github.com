@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Setup OpenGL' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>Graphik Kontext</title>
+   <link href='../icon.png' rel='shortcut icon' type='image/png' />
+   <link href='../je-so.css' rel='stylesheet' media='all' />
+   <link href='../c-lang.css' rel='stylesheet' media='all' />
+</head>
+<body>
+
+<div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
+<a href='opengl.html'>« Prev</a> | <a href='../index.html'>Home</a></div>
+<h1 class='title'>Setup OpenGL (ES)</h1>
+<h2 class='subtitle'>Welche Elemente zusammen es vermögen, mit OpenGL zu zeichnen</h2>
+<div class='date'>Samstag, 29. März 2014</div>
+
+
+<h3>Fenster, Kontexte, Pixelspeicher</h3>
+<p> ... </p>
+
+
+<h3>Normalisiertes Koordinatensystem</h3>
+<p> ... </p>
+
+
+<pre class='diagram'>
+
+        (x=-1,y=1,z=1) X──────────────────X (x=1,y=1,z=1)
+                      ╱│                 ╱│
+                     ╱ │                ╱ │
+                    ╱  │               ╱  │
+                   ╱   │              ╱   │
+                  ╱    │             ╱    │
+ (x=-1,y=1,z=-1) X──────────────────X (x=1,y=1,z=-1)
+                 │     │            │     │
+                 │     │            │     │
+       (x=-1,y=-1│z=1) X────────────│─────X (x=1,y=-1,z=1)
+                 │    ╱             │    ╱
+                 │   ╱              │   ╱
+                 │  ╱               │  ╱
+                 │ ╱                │ ╱
+                 │╱                 │╱
+(x=-1,y=-1,z=-1) X──────────────────X (x=1,y=-1,z=-1)
+</pre>
+<div class='label'>Abbildung 1: Normalisiertes Koordinatensystem</div>
+<pre class='diagram Clang'>
+
+ ┏━━━━━━━━━┓                     ┏━┓
+ ┃ Fenster ┃                     ┃╳┃
+┏┻━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━┻━┫
+┃  ◄──────── (b)reite ───────►     ┃
+┃  ╭────────────────────────X▲     ┃╭─────────────────────────┐
+┃  │               (x+b,y+h)│❘     ┃│                         │  
+┃  │                        │❘     ┃│                         │
+┃  │     Farbspeicher       │      ┃│      Z-Speicher         │
+┃  │    (Color Buffer)      │(h)öhe┃│    (Depth Buffer)       │
+┃  │                        │      ┃│                         │
+┃  │(x,y)    RGBA           │❘     ┃│ Werte zwischen 0 .. 1   │
+┃  X────────────────────────╯▼     ┃└─────────────────────────╯
+┃     <span class='localvar'>glViewport</span>(<span class='param'>x</span>,<span class='param'>y</span>,<span class='param'>b</span>,<span class='param'>h</span>)          ┃   <span class='localvar'>glDepthrangef</span>(<span class='param'>n</span>,<span class='param'>f</span>)
+X━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛   z ∊ [-1, +1] → [n, f]
+(0,0)                                  0 <= n,f <=1
+</pre>
+<div class='label'>Abbildung 2: Abbildung auf Window Koordinaten</div>
+
+<div class='footer'>&copy; 2014 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>

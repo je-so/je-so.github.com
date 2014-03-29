@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Graphische Ausgabe' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>Graphik Kontext</title>
+   <link href='../icon.png' rel='shortcut icon' type='image/png' />
+   <link href='../je-so.css' rel='stylesheet' media='all' />
+   <link href='../c-lang.css' rel='stylesheet' media='all' />
+</head>
+<body>
+
+<div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
+<a href='zerocopy.html'>« Prev</a> | <a href='../index.html'>Home</a></div>
+<h1 class='title'>Graphische Ausgabe</h1>
+<h2 class='subtitle'>Graphik betriebssystemunabhängig bzw. betriebssystemübergreifend zeichnen</h2>
+<div class='date'>Samstag, 29. März 2014</div>
+
+
+<h3>Wahl der Graphikbibliothek</h3>
+<p>Im Linuxumfeld beherrscht noch X11 die Fensterverwaltung. X11 unterstützt einfache 2D Zeichenoperationen und mit diversen Erweiterungen, etwa XRender, auch Transparenz und Komposition von Pixeln. Für beschleunigte 2D/3D Grafikausgabe ist die Bibliothek OpenGL zuständig. OpenGL ist eine plattform- und programmiersprachenunabhängige Programmierschnittstelle, die praktisch von allen gängigen Betriebssystem unterstützt wird. Ihr kleiner Bruder, die OpenGL ES Bibliothek — ES steht für eingebettete Systeme — wird von fast allen mobilen Geräten unterstützt, auch von Infotainment Systemen in Autos.</p>
+
+<h3>Einbindung von OpenGL ES</h3>
+<p>Mit der Wahl von OpenGL ES als Grafikbibliothek erreicht man die größte Plattformunabhängigkeit, mobile Plattformen eingeschlossen. Das Erzeugen von Fenstern (Windows) ist Sache der nativen Benutzeroberfläche eines Systems und nicht Bestandteil von OpenGL. Zusammen mit GLES wurde eine neue plattformübergreifende Programmschnittstelle, EGL, eingeführt. Diese verbindet OpenGL mit dem nativen Fenstersystem der Plattform — kommt aber auch ganz ohne Fenstersystem aus — und erlaubt es so, die Grafikausgabe bis auf wenige Initialisierungsanteile portabel zu gestalten.</p>
+
+<p>EGL in der Version 1.4 unterstützt nicht nur OpenGL ES als API, sondern auch OpenVG zur Ausgabe von 2D Vektorgraphiken und den großen Bruder OpenGL. In Abbildung 1 ist dieser Zusammenhang nochmals graphisch veranschaulicht.</p>
+
+<pre class='diagram Clang'>
+<span class='localvar'>eglBindAPI</span>()  ╭───────────╮
+┌------------ │ Anwendung │ Parameter für eglBindAPI:
+|             ╰───────────╯
+|                  ▾ (Zeichen-API)   <span class='param'>EGL_OPENGL_API</span>
+|   ┌───────────┬────────┬────────┐  <span class='param'>EGL_OPENGL_ES_API</span>
+|   │ OpenGL ES │ OpenGL │ OpenVG │  <span class='param'>EGL_OPENVG_API</span>
+|   │           │        │  (2D)  │
+|   └───────────┴────────┴────────┘
+|        ▾ ▴
+|   ┌──────────────┐   ┌───────────────────────────┐
+└-▸ │  OpenGL EGL  │ ▸ │  Natives Fenster System   │
+    └──────────────┘   │  (X11 im Falle von Linux) │
+                 ╲     └───────────────────────────┘
+                  ╲       ╱
+    ┌──────────────╲─────╱───────┐
+    │               ◂───▸──────╮ │
+    │  Grafikkarten │ Fenster  │ │
+    │    Speicher   │ Speicher │ │
+    │  (GPU Memory) ╰──────────╯ │
+    └────────────────────────────┘
+             ▾
+    ┌──────────────────┐
+    │                  │
+    │  Display Monitor │
+    │                  │
+    └──────────────────┘
+</pre>
+<div class='label'>Abbildung 1: OpenGL ES / EGL Anwendungs-Architektur</div>
+
+<div class='footer'>&copy; 2014 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>
