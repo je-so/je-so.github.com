@@ -37,11 +37,16 @@ ol,ul {
  */
 
 a {
-   color: #3917FF; cursor: pointer; text-decoration: none;
+   color: #3917FF; text-decoration: none;
 }
 
-a:hover {
+a:not([href]) {
+   color: #808080;
+}
+
+a[href]:hover {
    text-decoration: underline;
+   cursor: pointer;
 }
 
 a.feed {
@@ -92,7 +97,7 @@ pre {
 }
 
 /*
- * <h1-9> elements *
+ * <h1-6> elements *
  */
 
 h1 {
