@@ -13,18 +13,55 @@
 
 <div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
 <a href='opengl.html'>« Prev</a> | <a href='../index.html'>Home</a> | <a>Next »</a></div>
-<h1 class='title'>Setup OpenGL (ES)</h1>
-<h2 class='subtitle'>Welche Elemente zusammen es vermögen, mit OpenGL zu zeichnen</h2>
-<div class='date'>Samstag, 29. März 2014</div>
+<h1 class='title'>Setup OpenGL mit EGL</h1>
+<h2 class='subtitle'>Das Zusammenspiel der Elemente</h2>
+<div class='date'>Dienstag, 8. April 2014</div>
 
 
-<h3>Fenster, Kontexte, Pixelspeicher</h3>
-<p> ... </p>
+<h3>Display Anzeige, Graphik Konfiguration, Window Surface und Kontext</h3>
+<p>Für die Initialisierung von OpenGL greife ich auf EGL zurück, das eine weitestgehend plattformunabhängige Initialisierung erlaubt. Für alle EGL Operationen wird in der Regel ein <code>EGLDisplay</code> benötigt. Das Display beschreibt die Bildschirmanzeige und benötigt seinerseits zur Initialisierung ein natives, systemspezifisches Display — etwa eine X11 Display Connection im Falle eines Linux Systems.</p>
+
+<p>Mit einem gültigen Display kann dann nach einer Graphik Konfiguration (<code>EGLConfig</code>) mit bestimmten Vorgaben gesucht werden, z.B. 32 Bit für alle RGBA Farbkanäle. Wird die gesuchte Konfiguration unterstützt, kann damit eine Zeichenoberfläche (<code>EGLSurface</code>) erzeugt werden. Ein Fenster etwa wird mit <code>eglCreateWindowSurface</code> erzeugt. Diese Funktion benötigt, wie ein Display auch, ein natives, systemspezifisches Window, das auch dieselbe Graphik Konfiguration unterstützen muss.</p>
+
+<p>Damit OpenGL weiß, welches Surface auf welchem Display es ansteuern soll, benötigt es einen aktuellen Graphik Kontext (<code>EGLContext</code>). Warum ? Weil das Display und die Surface nicht als zusätzliche Parameter an OpenGL Zeichenoperation übergeben werden und der Kontext sich zusätzlich gewählte Zeichenattribute wie Farbe, Texturen merkt und alle erzeugte Ressourcen speichert. Daraus folgt, dass es pro Thread nur einen aktuellen Kontext geben kann. Dieser darf auch nur exklusiv von einem Thread benutzt werden — OpenGL Ressourcen können aber threadübergreifend geteilt werden. Die Synchroni&shy;sa&shy;ti&shy;on mittels geeigneten Mitteln bleibt aber dem Benutzer überlassen.</p>
+
+<p>In Listing 1 ist ein Programmausschnitt zu sehen, der ein Display anlegt, eine Graphikkonfiguration erzeugt mit 32 Bit für alle Farbkanäle plus Z-Speicher und OpenGL ES Version 2 Unterstützung. Die aufgerufenen Funktionen sind js-projekt spezifisch und kapseln das Zusammenspiel von EGL und nativem X11. Ganz zum Schluss wird ein Graphik Kontext angelegt, der mittels <code>setcurrent</code> dem aktuellen Thread zugeordnet wird. Der Kontext unterstützt OpenGL ES als Zeichen API.</p>
+
+<pre class='diagram Clang'>
+display_t      disp;
+uint32_t       snr;
+window_t       win;
+gconfig_t      gconf;
+gcontext_t     gcontext;
+int32_t        conf_attribs[] = {
+   gconfig_BITS_BUFFER, 32,
+   gconfig_BITS_DEPTH, 4,
+   gconfig_CONFORMANT, gconfig_value_CONFORMANT_ES2_BIT,
+   gconfig_NONE
+};
+windowconfig_t winattr[] = {
+   windowconfig_INIT_FRAME,
+   windowconfig_INIT_TITLE("setup_opengles_demo"),
+   windowconfig_INIT_SIZE(400, 400),
+   windowconfig_INIT_POS(100, 100),
+   windowconfig_INIT_NONE
+};
+initdefault_display(&amp;disp);
+snr = defaultscreennr_display(&amp;disp);
+init_gconfig(&amp;gconf, &amp;disp, conf_attribs);
+init_window(&amp;win, &amp;disp, snr, 0, &amp;gconf, winattr);
+init_gcontext(&amp;gcontext, &amp;disp, &amp;gconf, gcontext_api_OPENGLES);
+setcurrent_gcontext(&amp;gcontext, &amp;disp, &amp;win, &amp;win);
+</pre>
+<div class='label' >Listing 1: Initialisierung</div>
 
 
 <h3>Normalisiertes Koordinatensystem</h3>
-<p> ... </p>
+<p>Jegliche OpenGL Zeichenoperationen werden in einem selbst definierten Koordinatensystem ausgeführt, am Ende der Transformationskette erwartet OpenGL jedoch die Koordinaten als normalisierte Gerätekoordinaten (engl.: normalized device coordinates, auch NDC). Siehe dazu Abbildung 1.</p>
 
+<p>Der dargestellte Koordinatenbereich erstreckt sich auf den drei X,Y und Z-Achsen von -1 bis +1. Koordinaten außerhalb werden abgeschnitten (<a href="http://de.wikipedia.org/wiki/Clipping_%28Computergrafik%29">Clipping</a>). Punkte mit der X-Koordinate -1 liegen ganz links bzw. ganz rechts, wenn X den Wert +1 hat. Punkte mit der Y-Koordinate -1 liegen ganz unten bzw. ganz oben, falls Y den Wert +1 hat. Genauso liegen Punkte mit der Z-Koordinate -1 ganz vorn (beim Betrachter) bzw. ganz hinten (entfernt vom Betrachter), falls Z den Wert +1 hat.</p>
+
+<p>Diese Art von Koordinatensystem wird auch als linkshändig bezeichnet. Würde die Orientierung der Z-Achse umgekehrt, Punkte mit Z-Werte von -1 liegen also ganz hinten, dann wäre es ein rechtshändiges System. Die ältere Fixed-Function-Pipeline von OpenGL (ohne ES) bis Version 2.1 verwendet zum Zeichnen ein rechtshändiges Koordinatensystem und multipliziert alle Z-Werte mit -1 bei der Transformation in normalisierte Gerätekoordinaten.</p>
 
 <pre class='diagram'>
 
@@ -46,26 +83,53 @@
 (x=-1,y=-1,z=-1) X──────────────────X (x=1,y=-1,z=-1)
 </pre>
 <div class='label'>Abbildung 1: Normalisiertes Koordinatensystem</div>
+
+
+<h3>Abbildung auf Fensterkoordinaten</h3>
+<p>Bei der Erzeugung einer Zeichenoberfläche, etwa eines Fensters, werden von OpenGL automatisch mehrere durch die Graphikkonfiguration definierte Speicher (engl.: Buffer) angelegt, namentlich Pixel-Speicher, Z-Speicher, Stencilspeicher usw. Z.B. hat ein Fenster einen Frontbuffer für Pixel, die der Benutzer gerade sieht und zusätzlich einen Backbuffer, in den die Pixel des neuen Bildes gezeichnet werden. Alle zusammen zu einem Fenster angelegten Buffer werden als Framebuffer bezeichnet. Die Abbildung der normalisierten Koordinaten auf den Framebuffer wird im folgenden Abschnitt erklärt.</p>
+
+<p>Im letzten Schritt der Koordinatentransformation wird der Pixelbereich des Fensters, auf den die normalisierten Koordinaten abgebildet werden, mit der Funktion <code>glViewport(x,y,w,h)</code> festgelegt. Die Parameter x und y geben den linken unteren Punkt im Fenster an und Parameter w und h die Breite und Höhe in Pixel an. Als Vorgabewerte sind anfangs (0, 0, Fensterbreite, Fensterhöhe) eingestellt. Folglich wird die Norm-Koordinate (x=-1,y=-1) auf die linke untere Ecke und (x=+1,y=+1) auf die rechte obere Ecke des Fensters abgebildet. Zumeist wird die Norm-Koordinate (1,1) auf die Fensterkoordinate (x+w,y+h) abgebildet und ist daher außerhalb des sichtbaren Viewportbereiches, indes für ein delta &gt; 0 wird Norm-Koordinate (+1-delta,+1-delta) auf die innerhalb des Viewports liegende und sichtbare Fensterkoordinate (x+w-1, y+h-1) abgebildet. Ändert sich die Fenstergröße im Laufe der Zeit, muss glViewport mit den geänderten Werten für Breite und Höhe aufgerufen werden.</p>
+
+<p>Die Z-Werte der Norm-Koordinaten werden in einen speziellen Z-Speicher transferiert, sofern es so in der Graphikkonfiguration verlangt wurde. Die Abbildung des Z-Wertes einer Norm-Koordinate auf den Wert im Z-Speicher wird mittels der Funktion <code>glDepthrangef(n,f)</code> gesteuert. Der Wert z=-1 wird auf n abgebildet und z=+1 auf f, wobei n und f zwischen 0 und 1 liegen oder gleich 0 oder 1 sind. Es ist möglich, für n einen größeren Wert als für f zu übergeben und so die Entfernungsinformation umzukehren. Die Defaultwerte für glDepthrangef sind (0,1).</p>
+
+<p>Abbildung 2 verdeutlicht nochmals die Zusammenhänge. Gezeichnet wird immer in den Hintergrundspeicher (Backbuffer) und erst die Funktion <code>eglSwapBuffers</code> transferiert den Inhalt des Hintergrundfarbspeichers in den, dem Benutzer angezeigten Vordergrund&shy;farb&shy;speicher.</p>
+
 <pre class='diagram Clang'>
-
- ┏━━━━━━━━━┓                     ┏━┓
- ┃ Fenster ┃                     ┃╳┃
-┏┻━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━┻━┫
-┃  ◄──────── (b)reite ───────►     ┃
-┃  ╭────────────────────────X▲     ┃╭─────────────────────────┐
-┃  │               (x+b,y+h)│❘     ┃│                         │  
-┃  │                        │❘     ┃│                         │
-┃  │     Farbspeicher       │      ┃│      Z-Speicher         │
-┃  │    (Color Buffer)      │(h)öhe┃│    (Depth Buffer)       │
-┃  │                        │      ┃│                         │
-┃  │(x,y)    RGBA           │❘     ┃│ Werte zwischen 0 .. 1   │
-┃  X────────────────────────╯▼     ┃└─────────────────────────╯
-┃     <span class='localvar'>glViewport</span>(<span class='param'>x</span>,<span class='param'>y</span>,<span class='param'>b</span>,<span class='param'>h</span>)          ┃   <span class='localvar'>glDepthrangef</span>(<span class='param'>n</span>,<span class='param'>f</span>)
-X━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛   z ∊ [-1, +1] → [n, f]
-(0,0)                                  0 <= n,f <=1
+ [Farbspeicher/Color Buffer]     [Z-Speicher/Depth Buffer]
+┌────────────────────────────┐ ┌────────────────────────────┐
+│  ◄───── W ────► (Vx+W,Vy+H)│ │  ◄───── W ────► (Vx+W,Vy+H)│
+│  ┌─────────────┐▲          │ │  ┌─────────────┐▲          │
+│  │ gezeichnete │❘          │ │  │ gemerkte    │❘          │
+│  │ Bildpunkte  │H          │ │  │ Tiefe oder  │H          │
+│  │ RGBA        │❘          │ │  │ Z-Wert      │❘          │
+│  └─────────────┘▼          │ │  └─────────────┘▼          │
+│  (Vx,Vy)                   │ │  (Vx,Vy)                   │
+│  <span class='localvar'>glViewport</span>(<span class='param'>Vx</span>,<span class='param'>Vy</span>,<span class='param'>W</span>,<span class='param'>H</span>)     │ │  <span class='localvar'>glDepthrangef</span>(<span class='param'>N</span>,<span class='param'>F</span>)        │
+│                            │ │  z ∊ [-1, +1] → [N, F]     │
+│╭ <span class='localvar'>eglSwapBuffers</span>(...)       │ │  0 &lt;= N,F &lt;= 1             │
+└│───────────────────────────┘ └────────────────────────────┘
+ │          [nicht sichtbar/offscreen back buffer]
+-│-------------------------------------------------------------
+ │━━━━━━━━━┓               ┏━┓
+ │ Fenster ┃               ┃╳┃
+┏│━━━━━━━━━┻━━━━━━━━━━━━━━━┻━┫
+┃╰▶  [sichtbar /             ┃
+┃     onscreen front buffer] ┃
+┃                            ┃
+┃[Farbspeicher/Color Buffer] ┃
+┃                            ┃
+┃                            ┃
+┃                            ┃
+┃                            ┃
+┃                            ┃
+┃                            ┃
+┃                            ┃
+┃                            ┃
+┃                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 </pre>
-<div class='label'>Abbildung 2: Abbildung auf Window Koordinaten</div>
+<div class='label' >Abbildung 2: Abbildung Norm-Koordinaten auf Fensterkoordinaten</div>
 
-<div class='footer'>&copy; 2014 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+<div class='footer '>&copy; 2014 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
 </body>
 </html>

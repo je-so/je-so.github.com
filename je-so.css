@@ -182,7 +182,9 @@ h1 + p, h2 + p, h3 + p, h4 + p {
 
 .subtitle {
    font-size: 14pt;
+   margin-top: 7pt;
 }
+
 
 /*
  * Layout *
