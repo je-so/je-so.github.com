@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Huffman Daten Kompression' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>Huffman-Code</title>
+   <link href='../icon.png' rel='shortcut icon' type='image/png' />
+   <link href='../je-so.css' rel='stylesheet' media='all' />
+</head>
+<body>
+
+<div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
+<a href='glsetup.html'>« Prev</a> | <a href='../index.html'>Home</a> | <a>Next »</a></div>
+<h1 class='title'>Huffman Daten Kompression</h1>
+<h2 class='subtitle'>Langsamer Datenübertragung durch Datenkompression entgegenwirken</h2>
+<div class='date'>Donnerstag, 10. Juli 2014</div>
+
+
+<h3>Datenkompression</h3>
+<p>Datenmengen zu reduzieren erlaubt es, bei gleichem Speicherplatzbedarf ein Mehr an Informationen zu speichern. Der zweite Vorteil ist, Datenübertragungen zu beschleunigen, wie sie im Netzwerk, aber auch zwischen Hauptspeicher und der Festplatte des Computers stattfinden. Der mögliche Durchsatz moderner Prozessoren wächst mit jedem weiteren Core.</p>
+<p>Das Verhältnis der Datenübertragungsgeschwindigkeit zur Prozessortaktfrequenz liegt bei 1 zu 100 für Zugriffe auf den Hauptspeicher, um 1:10.000.000 für Zugriffe auf die externe Festplatte (keine SSD) und bei 1 zu 40.000 für Zugriffe auf das Netzwerk.</p>
+<p>Daher kann Datenkompression die Wartezeit eines Nutzers erheblich verringern, wenn mehr Prozessorzeit gegen eine geringere Datenmenge gehandelt wird.</p>
+
+<h3>Huffman Code</h3>
+<p>Daten werden i.d.R. kodiert in Zeichen fester Bitlänge, für Zeichen in ASCII-Code werden 7 Bit Längen verwendet und bei Unicodezeichen in UTF-32 Kodierung eine Länge von 32 Bit. Die Huffman Kodierung von Zeichen macht sich nun zunutze, daß Zeichen mit unterschiedlicher Häufigkeit auftreten und eine kürzere Bitlänge für häufig auftretende Zeichen und eine längere für weniger häufige Zeichen die Gesamtdatenmenge reduziert.</p>
+
+<p>Voraussetzung ist, daß die Häufigkeit jedes einzelnen Zeichens vorab bekannt ist, um einen optimalen Huffman-Code berechnen zu können. Der Algorithmus zur Huffman-Kodierung wählt die Bitlängen jedes Zeichens genau so, daß eine Folge von Zeichen mit bekannter Häufigkeitsverteilung mit einer minimalen Anzahl an Bits kodiert werden kann.</p>
+
+<h3>Darstellung der Zeichenkodierung</h3>
+<p>Das Mittel zur Darstellung einer gewählten Huffman Kodierung ist der <i>präfixfreie</i> Codebaum bzw. Trie. Der linke Zweig eines inneren Baumknotens liefert den Bitwert 0 und der rechte den Bitwert 1. Die Blätter des Baumes werden mit den zu kodierenden Zeichen markiert.
+Der Pfad von der Wurzel zu einem Blatt bestimmt anhand der linken und rechten Abzweigungen der inneren Knoten den variabel langen Bitcode des zugehörigen Zeichens.</p>
+
+<p>Der Huffman-Algorithmus erzeugt einen optimalen Codebaum. Optimal bedeutet, daß die Summe über alle Produkte aus Häufigkeit eines Zeichens multipliziert mit der Bitlänge minimal ist.</p>
+
+<pre class='diagram'>
+        Wurzel
+         ╭─╮
+         ╰─╯
+       0/   \1
+      ┌─┐   ╭─╮      Zeichen | Code | Bitlänge
+      │X│   ╰─╯      -------------------------
+      └─┘  0/ \1       X     |  0   | 1
+          ┌─┐ ┌─┐      Y     |  10  | 2
+          │Y│ │Z│      Z     |  11  | 2
+          └─┘ └─┘
+</pre>
+<div class='label'>Abbildung 1: Codebaum / Trie</div>
+
+<h3>Der Algorithmus</h3>
+<p><ol>
+<li>Zähle für jedes Zeichen die Anzahl seines Vorkommens</li>
+<li>Für jedes Zeichen wird ein Blatt (Knoten ohne Kinder) erstellt und
+    mit der Anzahl seines Vorkommens und dem Zeichen markiert.</li>
+<li>Wiederhole diese Schritte, bis alle Knoten zu einem Baum vereint sind:
+   <ol>
+   <li>Wähle zwei Knoten (oder Blätter), die mit der kleinsten Anzahl markiert sind, und fasse sie als neuen Teilbaum zusammen.</li>
+   <li>Erstelle dazu einen neuen Knoten, der beide Knoten als Kinder hat.</li>
+   <li>Markiere den neuen Knoten mit der Summe der Anzahl der Kindknoten.</li>
+   </ol></li>
+</ol></p>
+
+<pre class='diagram'>
+   Zeichen:    'a' | 'b' | 'c' | 'd'    ╭───╮ ╭───╮ ╭───╮ ╭───╮
+1: --------------------------------- 2: │2,a│ │3,b│ │5,c│ │8,d│
+   Häufigkeit:  2  |  3  |  5  |  8     ╰───╯ ╰───╯ ╰───╯ ╰───╯
+
+     ╭─╮ ╭───╮ ╭───╮       ╭──╮ ╭───╮        ╭──╮
+3:   │5│ │5,c│ │8,d│  3':  │10│ │8,d│  3'':  │18│
+     ╰─╯ ╰───╯ ╰───╯       ╰──╯ ╰───╯        ╰──╯
+    0/ \1                 0/  \1            0/  \1
+ ╭───╮  ╭───╮          ╭───╮   ╭─╮       ╭───╮   ╭──╮
+ │2,a│  │3,b│          │5,c│   │5│       │8,d│   │10│
+ ╰───╯  ╰───╯          ╰───╯   ╰─╯       ╰───╯   ╰──╯
+                              0/ \1             0/  \1
+                           ╭───╮  ╭───╮      ╭───╮   ╭─╮
+                           │2,a│  │3,b│      │5,c│   │5│
+                           ╰───╯  ╰───╯      ╰───╯   ╰─╯
+                                                    0/ \1
+                                                 ╭───╮  ╭───╮
+                                                 │2,a│  │3,b│
+                                                 ╰───╯  ╰───╯
+Zeichen: 'a' | 'b' | 'c'| 'd'
+-------------------------------
+Code:    110 | 111 | 10 | 0
+</pre>
+<div class='label'>Abbildung 2: Illustration des Algorithmus</div>
+
+<p>Mit dem Codebaum kann für jedes Zeichen sein zugehöriges Codewort variabler Bitlänge bestimmt werden und das Zeichen durch dieses Codewort ersetzt werden. Der so erzeugte Bitstrom besitzt eine minimale Bitlänge. Dieser Algorithmus erzeugt also einen Codebaum, der optimal ist im Sinne einer minimalen Codelänge.</p>
+
+<h3>Eigenschaften von Codebäumen</h3>
+<p>Zum Beweis der Optimalität des Baumes werden folgende 2 Eigenschaften von optimalen Codebäumen benötigt. Die erste Eigenschaft besagt, daß jeder Knoten entweder ein Blatt ist, also keine Kinder hat, oder als innerer Knoten genau zwei Kinder hat.</p>
+<pre class='diagram'>
+Eigenschaft: Jeder Knoten hat zwei Kinder
+   x:╭─╮            x`:╭─╮
+     ╰─╯               ╰─╯
+       \1             0/  \1
+      y:╭─╮         (T1)  (T2)
+        ╰─╯
+       0/ \1      Teilbaum beginnend mit x` erzeugt
+     (T1)  (T2)   kürzeren Code, also ist Teilbaum
+                  beginnend mit x nicht optimal.
+x, y: Knoten
+T1, T2: Teilbäume
+</pre>
+<div class='label'>Abbildung 3: Eigenschaft 1 eines optimalen Baumes</div>
+
+<p>Die zweite Eigenschaft eines optimalen Baumes besagt, daß ein Knoten mit maximaler Tiefe immer zwei Blätter markiert mit der kleinsten Häufigkeit besitzen kann.</p>
+
+<pre class='diagram'>
+Eigenschaft: Knoten maximaler Tiefe haben
+             Blätter minimaler Häufigkeit
+      T:╭─╮                T`:╭─╮
+        ╰─╯                   ╰─╯
+   ...  ...  ...         ...  ...  ...
+  ┌─┐   ╭─╮   ┌─┐       ┌─┐   ╭─╮   ┌─┐
+  │M│   ╰─╯   │N│       │O│   ╰─╯   │P│
+  └─┘  0/ \1  └─┘       └─┘  0/ \1  └─┘
+     ┌─┐   ┌─┐             ┌─┐   ┌─┐
+     │O│   │P│             │M│   │N│
+     └─┘   └─┘             └─┘   └─┘
+Seien M,N Blätter mit minimaler Häufigkeit und O,P Blätter
+mit maximaler Tiefe (Bitlänge). Dann können die Blätter
+O,P und M,N vertauscht werden, ohne die
+Optimalitätseigenschaft zu gefährden.
+</pre>
+<div class='label'>Abbildung 4: Eigenschaft 2 eines optimalen Baumes</div>
+
+<p>Die erzeugte Codelänge der Zeichen M,N,O,P mit den zugehörigen Codewortlängen b<sub>M</sub>, b<sub>N</sub>, b<sub>O</sub>, b<sub>P</sub> und den zugehörigen Häufigkeiten h<sub>M</sub>, h<sub>N</sub>, h<sub>O</sub>, h<sub>P</sub> im Baum T ist: <code>C(T)=b<sub>M</sub>*h<sub>M</sub>+b<sub>N</sub>*h<sub>N</sub>+b<sub>O</sub>*h<sub>O</sub>+b<sub>P</sub>*h<sub>P</sub></code>. Im modifizierten Baum T` ist die erzeugte Codelänge der Zeichen M,N,O,P: <code>C(T`)=b<sub>M</sub>*h<sub>O</sub>+b<sub>N</sub>*h<sub>P</sub>+b<sub>O</sub>*h<sub>M</sub>+b<sub>P</sub>*h<sub>N</sub></code>.</p>
+
+<p>Ist T` optimal, dann muss <code>C(T`)&lt;=C(T)</code> gelten.<br><code>C(T)-C(T`)=b<sub>M</sub>*(h<sub>M</sub>-h<sub>O</sub>)+b<sub>N</sub>*(h<sub>N</sub>-h<sub>P</sub>)+b<sub>O</sub>*(h<sub>O</sub>-h<sub>M</sub>)+b<sub>P</sub>*(h<sub>P</sub>-h<sub>N</sub>)</code>. Nochmals umgeformt ergibt sich: <code>(b<sub>O</sub>-b<sub>M</sub>)*(h<sub>O</sub>-h<sub>M</sub>)+(b<sub>P</sub>-b<sub>N</sub>)*(h<sub>P</sub>-h<sub>N</sub>)</code>.</p>
+
+<p>Wir haben gefordert, daß b<sub>O</sub>, b<sub>P</sub> maximal sind und h<sub>M</sub>,h<sub>N</sub> minimal sind.D.h. <code>b<sub>M</sub>,b<sub>N</sub>&lt;=b<sub>O</sub>,b<sub>P</sub></code> und <code>h<sub>M</sub>,h<sub>N</sub>&lt;=h<sub>O</sub>,h<sub>P</sub></code>. Daraus folgt, daß <code>(b<sub>O</sub>-b<sub>M</sub>)&gt=0</code>, <code>(b<sub>P</sub>-b<sub>N</sub>)&gt=0</code>, <code>(h<sub>O</sub>-h<sub>M</sub>)&gt=0</code> und <code>(h<sub>P</sub>-h<sub>N</sub>)&gt=0</code>. Wenn <code>C(T)-C(T`)&gt;=0</code>, dann <code>C(T)&gt;=C(T`)</code>.</p>
+
+<h3>Beweis der Optimalität</h3>
+<p>Mit obigen beiden Eigenschaften optimaler Codebäume kann mittels Induktion über die Anzahl an Blättern bewiesen werden, daß der Huffman Algorithmus einen optimalen Codebaum findet. Der Induktionsanfang ist offensichtlich. Ein Baum mit zwei Blättern ist immer optimal. Es wird jeweils ein Bit pro Zeichen zur Kodierung verwendet.</p>
+
+<pre class='diagram'>
+     ╭─╮
+     ╰─╯       Dieser Baum mit 2 Blättern
+   0/   \1     ist optimal!
+  ╭─╮    ╭─╮
+  ╰─╯    ╰─╯
+  'a'    'b'
+</pre>
+<div class='label'>Abbildung 5: Induktionsanfang</div>
+
+<p>Jetzt gehen wir davon aus, daß der Huffman Algorithmus für n Blätter einen optimalen Codebaum findet (Induktionsvoraussetzung, ist für 2 Knoten richtig). Haben wir n+1 Blätter fasst der Algorithmus zwei mit minimaler Häufigkeit zu einem neuen Blatt zusammen, wobei sich dessen Häufigkeit aus der Summe der Häufigkeiten der Blätter zusammensetzt. Nach Induktionsvoraussetzung findet der Alg. für n Blätter einen optimalen Baum. Wird das zusammengefasste Blatt wieder expandiert, haben wir n+1 Blätter. Nun müssen wir beweisen, daß der Baum mit n+1 Blättern auch optimal ist.</p>
+
+<pre class='diagram'>
+1:  ┌──┐ ┌─┐     2:  T: ╭─╮    3: T`: ╭─╮  Beweise:
+    │MN│ │A│ ...        ╰─╯           ╰─╯
+    └──┘ └─┘            ...           ...  T` ist auch optimal,
+   0/  \1               /             /    wenn T optimal.
+ ┌─┐    ┌─┐          ┌──┐           ╭─╮
+ │M│    │N│          │MN│           ╰─╯
+ └─┘    └─┘          └──┘          0/ \1
+                Voraussetzung:    ┌─┐  ┌─┐
+                T (n Blätter)     │M│  │N│
+                ist optimal!      └─┘  └─┘
+</pre>
+<div class='label'>Abbildung 6: Induktionsvoraussetzung und Schritt</div>
+
+<p><b>Beweis mit Widerspruch:</b> Sei T` nicht optimal, dann gibt es einen optimalen Baum T``. Nach den obigen Eigenschaften können die Knoten M,N an die tiefste Stelle verschoben werden, wobei der modifizierte T`` immer noch optimal ist. Der modifizierte Baum T`` hat eine Struktur bezüglich der Knoten M,N wie T`. Ersetzt man nun Blätter M,N durch Blatt MN, dann erzeugt der so modifizierte Baum T`` eine geringere Bitlänge der kodierten Zeichen als T. Somit wäre Baum T nicht optimal, was ein Widerspruch zur Voraussetzung ist, daß T optimal ist. Daraus folgt, daß T` auch optimal sein muss.</p>
+
+<pre class='diagram'>
+T` nicht optimal; Sei daher T`` optimal:
+
+    T``:╭─╮  modifizierter T``:╭─╮        Dann kann T``
+        ╰─╯                    ╰─╯        modifiziert werden
+   ...  ...  ...          ...  ...  ...   wegen Eigenschaften
+  ┌─┐   ╭─╮   ┌─┐        ┌─┐   ╭─╮   ┌─┐  optimaler Bäume.
+  │M│   ╰─╯   │N│        │O│   ╰─╯   │P│
+  └─┘  0/ \1  └─┘        └─┘  0/ \1  └─┘
+     ┌─┐   ┌─┐              ┌─┐   ┌─┐
+     │O│   │P│              │M│   │N│
+     └─┘   └─┘              └─┘   └─┘
+
+Ersetze M, N durch MN
+
+T``:  ╭─╮     Da T`` optimal und T` nicht, erzeugt T``
+      ╰─╯     einen kürzeren Code als Baum T`.
+      ...     Mit M,N ersetzt durch MN also auch
+       /      einen kürzeren Code als T. T wäre
+     ┌──┐     also auch nicht optimal.
+     │MN│     Dies ist aber ein Widerspruch.
+     └──┘     Daraus folgt: T` ist optimal.
+</pre>
+<div class='label'>Abbildung 7: Beweis mit Widerspruch</div>
+
+
+<div class='footer'>&copy; 2014 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>
