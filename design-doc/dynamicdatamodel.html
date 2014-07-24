@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Dynamisches Daten Modell' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>Dynamic Data Model</title>
+   <link href='../icon.png' rel='shortcut icon' type='image/png' />
+   <link href='../je-so.css' rel='stylesheet' media='all' />
+   <link href='../c-lang.css' rel='stylesheet' media='all' />
+</head>
+<body>
+
+<div class='preamble'>Entwurfsdokument<br/><b>js-projekt</b><br/>
+<a href='huffman.html'>« Prev</a> | <a href='../index.html'>Home</a> | <a>Next »</a></div>
+<h1 class='title'>Dynamisches Daten Modell</h1>
+<h2 class='subtitle'>Komplexe, beziehungslastige Datenstrukturen beschreiben</h2>
+<div class='date'>Donnerstag, 24. Juli 2014</div>
+
+
+<h3>Datenmodell Typen</h3>
+<p>Grob gerechnet, lassen sich zwei Typen von Datenmodellen unterscheiden. Zum einen das heute am meisten verwendete tabellenartige Modell (Entity-Relationship), das mittels der Anfragesprache SQL angesteuert wird. Datenstrukturen werden in Tabellen mit Spalten atomarer Werte »flachgeklopft«. Beziehungen werden über Schlüssel- und Fremdschlüssel relational abgebildet. Hierarchische Beziehungen sind nur unnatürlich abzubilden.</p>
+
+<p>Das zweite, weit verbreitete Datenmodell, das weniger zum Speichern der Daten Verwendung findet, sich vielmehr als Abbildung der Daten im Hauptspeicher eignet, ist das Objektorientierte Datenmodell, überlicherweise als UML-Klassen-Diagramm dargestellt.</p>
+
+<p>Das OO-Modell ist ausdrucksstärker, Beziehungen jeder Art, auch hierarchische, können natürlich abgebildet werden. Gleichzeitig sind schnelle Zugriffspfade wie Indizes explizit auszuformulieren und nicht nahtlos in das Modell integriert, weiterhin sind Relationen, Schlüssel- und Fremdschlüsselbeziehungen leider auch nicht natürlicher Bestandteil. Die Verallgemeinerung verliert sich in detaillierter Komplexität. OO-Programmiersprachen bieten nur wenig bis gar keine – von LINQ einmal abgesehen – Unterstützung von komplexen Datenmodellen.</p>
+
+<h3>Der Weg zur Lösung</h3>
+<p>An dieser Stelle kann ich kein neues, allgemeingültiges Datenmodell entwerfen, jedoch mit einer Idee den ersten Schritt eines Weges gehen, dessen langfristiges Ziel die Vereinheitlichung der Datenmodelle ist, mittelfristig die Erstellung komplexer OO-Modelle erleichtert.</p>
+
+<p>Natürlich ist die Idee umfangreicher, als hier dargestellt. Dinge wie automatische Speicherverwaltung (Garbage-Collection), Verteilung der Daten über mehrere Netzwerkknoten, Clustering der Daten, Implementierung einer virtuellen Maschine und Definition eines Bytecodes zur dynamischen Erweiterung des Modells in OS- und hardwareunabhängiger Weise gehören dazu. Sie sind ohne unterstützende Entwicklungswerkzeuge – die für sich genommen eigenständige Projekte sind – jedoch nicht vernünftig umzusetzen.</p>
+
+<h3>Einschränkungen</h3>
+<p>Der erste Schritt auf dem Weg besteht nun darin, Dinge auszuschließen, um sich nicht in der Detailliertheit des Gesamten zu verlieren. Alles das, was sich nicht aus der natürlichen Weiterentwicklung des schon Vorhandenen ergibt, wird also verworfen.</p>
+
+<p>Zunächst widmen wir uns dem ersten Einsatzgebiet des Datenmodells. Es soll uns erlauben, bestehende C-Datenstrukturen (struct type_t) mit Werten und Zeigern sowie Listen, (Suffix-)Bäume, Tries zu einem Ganzen zu verbinden. Die Dynamik des Modells besteht darin, daß es per C-API bzw. textueller Beschreibung um neue Datentypen (Objekte, Indizes und Beziehungen) erweitert werden kann.</p>
+
+<p>Das Datenmodell soll uns also erlauben, bestehende C Datenstrukturen einfacher miteinander zu kombinieren und die Einhaltung von Beziehungen, Invarianten usw. zwischen den einzelnen Teilen automatisch sicher zu stellen, um den C Programmierer so von der manuellen und fehleranfälligen Aufgabe der Einhaltung der Konsistenzbe&shy;din&shy;gungen zu befreien.</p>
+
+<h3>Konzept</h3>
+<p>Das vorläufige Konzept liest sich einfach. Eine textuelle Beschreibung des Datenmodells wird einem DDM-Übersetzer gelesen und eine interne Repräsentation verwandelt. Daraus resultiert eine Instanz eines DDM-Typ-Kataloges.</p>
+
+<pre class='diagram'>
+                       (liest)
+------------------------    ╭────────────────────╮
+  DataModel Definition  --&gt; │  DDM-Übersetzer    │
+     (Text Datei)           │  (DDM-Parser)      │
+------------------------    ╰────────────────────╯
+                            ↓ (erzeugt)
+   ╭────────────────────╮
+   │  DDM Typ Katalog   ├───◯  Catalog-Interface
+   │  (Type Catalog)    │
+   ╰──────────────▴─────╯
+                  │1
+   ╭──────────────┴──────╮   ╭────────────────────────╮
+   │  Datenbank Instanz  ├──▸│  DB Datensatz Speicher │
+   │  (DB Instance)      │  1│  (DB InMemory Store)   │
+   ╰─┬────────┬───────┬──╯   ╰────────────────────────╯
+     ◯        ◯       ◯
+    Catalog-  Query-  Update- Interface
+</pre>
+<div class='label'>Abbildung 1: DDM Module</div>
+
+<p>Um eine Datenbank mit dynamischem Datenmodell anzulegen, muss eine Datenbankinstanz mit dem entsprechenden DDM-Typ-Katalog parametriert erzeugt werden. Die Datenbankinstanz verwaltet zusätzlich den die Datensätze enthaltenden Speicher. Die Struktur der Datensätze ist gemäß den Typen aus dem DDModell definiert.</p>
+
+<p>Einer Datenbankinstanz kann mittels Kataloginterface die Beschreibung der Datentypen entlockt werden. Mittels Query- und Updateinterface können Datensätze gelesen, angelegt und geändert werden.</p>
+
+<pre class='diagram Clang'>
+<span class='key'>typedef</span> <span class='type'>char</span>[2] <span class='localvar'>LANG</span>;
+
+<span class='key'>struct</span> <span class='localvar'>textdef_t</span> {
+   <span class='localvar'>LANG</span>       language;
+   <span class='type'>u16</span>        len;
+   <span class='type'>char</span>[len]  text;
+}
+
+<span class='key'>struct</span> <span class='localvar'>textres_t</span> {
+   <span class='localvar'>textdef_t</span>[textdef_t.language] translations;
+}
+
+<span class='key'>struct</span> <span class='localvar'>resource_file_t</span> {
+   <span class='type'>u16</span>             len;
+   <span class='type'>char</span>[len]       filename;
+   <span class='type'>set</span>(LANG)       lang;
+   <span class='type'>list</span>(rextres_t) textresources;
+
+   <span class='key'>invariant</span>
+      textresources.translations.language <span class='key'>in</span> lang
+      ;
+}
+</pre>
+<div class='label'>Abbildung 2: Datenmodell Definitions Sprache</div>
+
+<div class='footer'>&copy; 2014 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>
