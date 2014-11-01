@@ -35,7 +35,7 @@
 
 <p>Zunächst widmen wir uns dem ersten Einsatzgebiet des Datenmodells. Es soll uns erlauben, bestehende C-Datenstrukturen (struct type_t) mit Werten und Zeigern sowie Listen, (Suffix-)Bäume, Tries zu einem Ganzen zu verbinden. Die Dynamik des Modells besteht darin, daß es per C-API bzw. textueller Beschreibung um neue Datentypen (Objekte, Indizes und Beziehungen) erweitert werden kann.</p>
 
-<p>Das Datenmodell soll uns also erlauben, bestehende C Datenstrukturen einfacher miteinander zu kombinieren und die Einhaltung von Beziehungen, Invarianten usw. zwischen den einzelnen Teilen automatisch sicher zu stellen, um den C Programmierer so von der manuellen und fehleranfälligen Aufgabe der Einhaltung der Konsistenzbe&shy;din&shy;gungen zu befreien.</p>
+<p>Das Datenmodell soll uns also erlauben, bestehende C Datenstrukturen einfacher miteinander zu kombinieren und automatisch die Einhaltung von Beziehungen, Invarianten usw. zwischen den einzelnen Teilen sicherzustellen, um den C Programmierer so von der manuellen und fehleranfälligen Aufgabe der Einhaltung der Konsistenzbe&shy;din&shy;gungen zu befreien.</p>
 
 <h3>Konzept</h3>
 <p>Das vorläufige Konzept liest sich einfach. Eine textuelle Beschreibung des Datenmodells wird einem DDM-Übersetzer gelesen und eine interne Repräsentation verwandelt. Daraus resultiert eine Instanz eines DDM-Typ-Kataloges.</p>
@@ -61,7 +61,7 @@
 </pre>
 <div class='label'>Abbildung 1: DDM Module</div>
 
-<p>Um eine Datenbank mit dynamischem Datenmodell anzulegen, muss eine Datenbankinstanz mit dem entsprechenden DDM-Typ-Katalog parametriert erzeugt werden. Die Datenbankinstanz verwaltet zusätzlich den die Datensätze enthaltenden Speicher. Die Struktur der Datensätze ist gemäß den Typen aus dem DDModell definiert.</p>
+<p>Um eine Datenbank mit dynamischem Datenmodell anzulegen, muss eine Datenbankinstanz, parametriert mit dem entsprechenden DDM-Typ-Katalog, erzeugt werden. Die Datenbankinstanz verwaltet zusätzlich den die Datensätze enthaltenden Speicher. Die Struktur der Datensätze ist gemäß den Typen aus dem DDModell definiert.</p>
 
 <p>Einer Datenbankinstanz kann mittels Kataloginterface die Beschreibung der Datentypen entlockt werden. Mittels Query- und Updateinterface können Datensätze gelesen, angelegt und geändert werden.</p>
 
