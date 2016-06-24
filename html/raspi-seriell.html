@@ -18,13 +18,13 @@
 
 <h3>Raspberry Pi 2 Modell B</h3>
 <p>Der Raspberry Pi ist ein beliebter Einplatinencomputer, für den die <i>Raspberry Pi Foundation</i> auf ihrer <a href='https://www.raspberrypi.org/downloads/'>Homepage</a> verschiedene Linux-Distributionen zum Download anbietet.</p>
-<p>Wer <i>Embedded Linux</i> lernen oder einfach nur ARM-Assembler programmieren möchte, der findet mit diesem Gerät eine gutes Einsteigermodell.</p>
+<p>Wer <i>Embedded Linux</i> lernen oder einfach nur ARM-Assembler programmieren möchte, der findet mit diesem Gerät ein gutes Einsteigermodell.</p>
 
 <h4>Serielle Schnittstelle</h4>
 <p>Wird zum ersten Mal in den Raspberry Pi gebootet, kann dieser entweder angeschlossen an einen Monitor und eine Tastatur oder mittels <i>ssh pi@&lt;ip-adresse&gt;</i> konfiguriert werden. Ein anderer Weg ist, die bei der Raspbian Distribution standardmäßig unterstützte serielle Schnittstelle zum Login zu verwenden.</p>
 
 <h4>Voraussetzungen</h4>
-<p>Da PCs zumeist keine serielle Schnittstelle mehr anbieten, ist ein USB-zu-seriell-Wandler erforderlich. Beim Kauf eines Wandlers muss darauf geachtet werden, dass der Raspberry Pi keine USB typischen 5V auf seinen I/O Leitungen unterstützt, sondern nur 3.3V. Der Wandler sollte also zusätzlich die Pegel auf 3.3 Volt anpassen.</p>
+<p>Da PCs zumeist keine serielle Schnittstelle mehr bieten, ist ein USB-zu-seriell-Wandler erforderlich. Beim Kauf eines Wandlers muss darauf geachtet werden, dass der Raspberry Pi keine USB typischen 5V auf seinen I/O Leitungen unterstützt, sondern nur 3.3V. Der Wandler sollte also zusätzlich die Pegel auf 3.3 Volt anpassen.</p>
 <p>Ein geeigneter Wandler ist der <b>PL2303HX USB to TTL UART RS232 COM</b>, der sehr günstig bei Amazon für unter 3€ erworben werden kann.</p>
 <p>Der Wandler hat einerseits einen an den Computer anzuschließenden USB-Typ-A Stecker und andererseits 4 für die GPIO-Leiste des Raspberry bestimmte Kabel. Das rote Kabel ist nur dann mit der 5V Stromversorgung des Raspberry zu verbinden, wenn dieser nicht anderweitig mit Strom versorgt wird. Die folgende Abbildung zeigt die Belegung.</p>
 <pre class='diagram'>
@@ -44,7 +44,7 @@
 ││Eth ││USB ││USB │ │
 ╰┴────┴┴────┴┴────┴─╯
 </pre>
-<div class='label'>Abbildung 1: Anschluss des Kabels an die GPIO-Leiste des Raspberry-Pi</div>
+<div class='label'>Abbildung 1: Anschluss der Kabel an die GPIO-Leiste des Raspberry-Pi</div>
 
 
 <h4>Terminalprogramm</h4>
