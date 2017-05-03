@@ -31,11 +31,11 @@
       ╭─SD───╮  GPIO-
       │ Karte│  Leiste
 ╭─────┴──────┴──────╮
-│          3.3V ① ② │5V Vcc     <--- (rote Kabel, falls keine
-│         GPIO2 ③ ④ │5V               andere Stromversorgung)
-│         GPIO3 ⑤ ⑥ │0V Gnd     <--- schwarze Kabel
-│         GPIO4 ⑦ ⑧ │TXD UART0  <--- weiße Kabel (RXD)
-│           Gnd ⑨ ⑩ │RXD UART0  <--- grüne Kabel (TXD)
+│          3.3V ① ② │5V Vcc     <--- (rotes Kabel, falls
+│         GPIO2 ③ ④ │5V     keine andere Stromversorgung)
+│         GPIO3 ⑤ ⑥ │0V Gnd     <--- schwarzes Kabel
+│         GPIO4 ⑦ ⑧ │TXD UART0  <--- weißes Kabel (RXD)
+│           Gnd ⑨ ⑩ │RXD UART0  <--- grünes Kabel (TXD)
 │               ... │
 │               ... │
 │               ... │
@@ -48,11 +48,11 @@
 
 
 <h4>Terminalprogramm</h4>
-<p>Zur Ein- und Ausgabe aufseiten des PCs wird ein Terminalprogramm benötigt. Entweder kann es als <a href='https://github.com/je-so/embedded/blob/master/util/testterm.c'>Sourcecode</a> selbst übersetzt werden
+<p>Zur Ein- und Ausgabe aufseiten des PCs wird ein Terminalprogramm benötigt. Entweder wird ein <a href='https://github.com/je-so/testcode/tree/master/stm32f3/util/testterm.c'>Testterminal</a> aus dem Quellcode übersetzt mit
 <br><code>$ gcc -std=gnu99 -otestterm testterm.c</code>
-<br>oder ein Standardterminalprogramm wie <i>GNU Screen</i> verwendet werden.</p>
+<br>oder ein Standardterminalprogramm wie <i>GNU Screen</i> verwendet.</p>
 <p>Die serielle Schnittstelle wird normalerweise mit 115200 Baud, 8 Daten, keinem Parity und einem Stopbit betrieben (115200 8N1).</p>
-<p>Um sich einzuloggen per Screen-Programm, muss es gestartet werden mit
+<p>Um sich per Screen-Programm einzuloggen, muss es gestartet werden mit
 <br><code>$ screen /dev/ttyUSB0 115200</code>
 <br>wobei eine Hilfestellung mit den Tastencodes &lt;Strg+a&gt; und &lt;?&gt; aufgelistet wird.</p>
 <p>Falls Testerm verwendet wird, ist dieses zu starten mit
