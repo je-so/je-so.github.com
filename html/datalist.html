@@ -1,7 +1,11 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-   <meta charset="utf-8">
+   <meta charset='utf-8' />
+   <meta content='Datalist Replacement' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <link href='/favicon.png' rel='icon' type='image/png' />
+   <link href='/je-so.css' rel='stylesheet' media='all' />
    <style>
 
 pre {
@@ -10,22 +14,15 @@ pre {
 
 code {
    color: cadetblue;
+   font-size: 0.9em;
 }
 
-h5, h6 {
-   margin: 0 0 0.4em;
+pre > code {
+   font-size: 0.76em;
 }
 
-h5 {
-   font-size: 1.25rem;
-}
-
-h6 {
-   font-size: 1rem;
-}
-
-small {
-   font-size: 0.85em;
+h4 {
+   margin-bottom: -1em;
 }
 
 input {
@@ -35,12 +32,14 @@ input {
 }
 
 ul {
-   padding: 0 0 0 1em;
-   list-style-position: inside;
+   padding-left: 1em;
+   list-style: disc inside;
 }
 
 li {
    padding: 0.1em 0;
+   font-size: 0.8em;
+   line-height: 2;
 }
 
 .datalist-container {
@@ -89,10 +88,12 @@ kbd {
   </style>
 </head>
 <body>
-   <div style="margin:2em;">
+   <h1 class='title'>Datalist Replacement for Autocompletion</h1>
+   <h2 class='subtitle'>Less than 80 LOC of JavaScript</h2>
+   <div class='date'>Samstag, 15. Februar 2025</div>
+   <nav class='link'><a href='raspi-seriell.html'>«</a><a href='../index.html'>&#8962</a><a>»</a></nav>
 
-   <h5>Datalist Replacement for Autocompletion</h5>
-   <h6><small><tt>less than 80 LOC of JavaScript</tt></small></h6>
+   <h3>Input Example</h3>
 
    <div class="datalist-container">
       <input type="text" placeholder="Search...">
@@ -109,90 +110,93 @@ kbd {
       <li>The order of elements is determined once at construction.</li>
    </ul>
 
-   <h6>Usage</h6>
+   <h3>Usage</h3>
    <p>You can style the component with any CSS framework.</p>
    <ul>
       <li>The active element is marked with class options.activeClass.</li>
       <li>A list entry is styled with options.liClass.</li>
    </ul>
-   <pre>HTML</pre>
-   <p>Add the following HTML to your page and add additional classes with <code>class="..."</code>:</p>
-   <code><pre>
-   &lt;div class="datalist-container">
-      &lt;input type="text" placeholder="Search...">
-      &lt;ul>&lt;/ul>
-   &lt;/div></pre></code>
+   <h4><pre>Source Code</pre></h4>
+   <p>The code of the component is contained within this document at the end of the HTML code.</p>
 
-   <pre>Javascript</pre>
+   <h4><pre>HTML</pre></h4>
+   <p>Add the following HTML to your page and do not forget to add additional styles:</p>
+   <pre class="diagram">
+<code>&lt;div class="datalist-container">
+   &lt;input type="text" placeholder="Search...">
+   &lt;ul>&lt;/ul>
+&lt;/div></code></pre>
+
+   <h4><pre>Javascript</pre></h4>
    <p>Initialize component with <code>new DatalistInput(container, suggestions, options)</code></p>
-   <code><pre>
-   new DatalistInput(
-      document.querySelector(".datalist-container"),
-      [ 'Apple', 'Banana', 'Cherry', 'Mapped-Cherr_y' ],
-      {
-         activeClass: "active",
-         liClass: "",
-         aliases: {'Mapped-Cherr_y':'Cherry'}
-      })</pre></code>
+   <pre class="diagram">
+<code>new DatalistInput(
+   document.querySelector(".datalist-container"),
+   [ 'Apple', 'Banana', 'Cherry', 'Mapped-Cherr_y' ],
+   {
+      activeClass: "active",
+      liClass: "",
+      aliases: {'Mapped-Cherr_y':'Cherry'}
+   })</code></pre>
    <p>To adapt the filter algorithm of all suggestions shown in the list overwrite
       method match which is currently implemented as:</p>
-   <code><pre>
-   match(value) {
-      const searchTerm = value.toLowerCase()
-      return this.suggestions.flatMap((text,id) => text.toLowerCase().includes(searchTerm)
-         || this.suggestions[this.idmap[id]]?.toLowerCase().includes(searchTerm)
-         ? [{id, text}] : []
-      )
-   }</pre></code>
+   <pre class="diagram">
+<code>match(value) {
+   const searchTerm = value.toLowerCase()
+   return this.suggestions.flatMap( (text,id) =>
+      text.toLowerCase().includes(searchTerm)
+      || this.suggestions[this.idmap[id]]?.toLowerCase().includes(searchTerm)
+      ? [{id, text}] : []
+   )
+}</code></pre>
    <ul>
       <li>Property suggestions contains the array of all list entries given as argument in constructor.</li>
       <li>Property idmap maps the index of an alias to the expected value.</li>
    </ul>
 
-   <pre>CSS</pre>
+   <h4><pre>CSS</pre></h4>
    <p>The container needs to be positioned to work as anchor point for the positioned list.</p>
-   <code><pre>
-   .datalist-container { position: relative; }</pre></code>
+   <pre class="diagram">
+      <code>.datalist-container { position: relative; }</code></pre>
    <p>
       The data list for autocompletion needs a little more styling and is positioned absolute.<br>
-      It should not be displayed (<code>display:none</code>) initially and positioned below the text input field (<code>top:100%</code>).<br>
-      Use <code>max-height</code> and <code>overflow-y:auto</code> to set the maximum height of visible entries and to enable scrolling.<br>
+      It should not be displayed <code>display:none</code> initially and positioned below the text input field with <code>top:100%</code>.
       With <code>left:0;right:0</code> the list takes the whole width of the container.<br>
+      Use <code>max-height</code> and <code>overflow-y:auto</code> to set the maximum height of visible entries and to enable scrolling.
+
    </p>
-   <code><pre>
-   .datalist-container ul {
-      display: none;
-      position: absolute;
-      cursor: pointer;
-      border: 1px solid rgba(33,37,41,0.25);
-      top: 100%;
-      left: 0;
-      right: 0;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 1000;
-      margin: 1px 0 0;
-      padding: 0;
-      list-style-type: none;
-      background-color: #fff;
-   }</pre></code>
+   <pre class="diagram">
+<code>.datalist-container ul {
+   display: none;
+   position: absolute;
+   cursor: pointer;
+   border: 1px solid rgba(33,37,41,0.25);
+   top: 100%;
+   left: 0;
+   right: 0;
+   max-height: 200px;
+   overflow-y: auto;
+   z-index: 1000;
+   margin: 1px 0 0;
+   padding: 0;
+   list-style-type: none;
+   background-color: #fff;
+}</code></pre>
 
    <p>
-      Style the list entries to show the mouse position and the active one
+      Style the list entries to show the mouse position and the active entry
       which is chosen by pressing <kbd>Enter</kbd>.
    </p>
-   <code><pre>
-   .datalist-container ul li {
-      padding: 1em;
-   }
-   .datalist-container ul li:hover {
-      background-color: rgba(33,37,41,0.05);
-   }
-   .datalist-container ul li.active {
-      background-color: cadetblue;
-   }</pre></code>
-
-   </div>
+   <pre class="diagram">
+<code>.datalist-container ul li {
+   padding: 1em;
+}
+.datalist-container ul li:hover {
+   background-color: rgba(33,37,41,0.05);
+}
+.datalist-container ul li.active {
+   background-color: cadetblue;
+}</code></pre>
 
    <script>
 class DatalistInput {

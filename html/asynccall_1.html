@@ -5,9 +5,9 @@
    <meta content='Reasoning about async system calls' name='description' />
    <meta content='Jörg Seebohn' name='author' />
    <title>asyncio</title>
-   <link href='../icon.png' rel='shortcut icon' type='image/png' />
-   <link href='../je-so.css' rel='stylesheet' media='all' />
-   <link href='../c-lang.css' rel='stylesheet' media='all' />
+   <link href='/favicon.png' rel='icon' type='image/png' />
+   <link href='/je-so.css' rel='stylesheet' media='all' />
+   <link href='/c-lang.css' rel='stylesheet' media='all' />
 </head>
 <body>
 
@@ -56,7 +56,7 @@
 <p>Da jetzt aber immer nur ein Thread Zugriff auf die Ressourcen hält, sind Locking&shy;operationen überflüssig. Aktuell in Bearbeitung befindliche Ressourcen sind allerdings in einer Warteschlange zu halten, bis die asynchrone Operation abgeschlossen ist.
    Statt eines Locks, der implizit eine Art von »in Bearbeitung«-Zustand setzt, ist dies jetzt durch die Warteliste explizit ersichtlich.</p>
 
-<p>Aus den Ausführungen sollte klar werden, daß der Aufwand nicht höher ist, jedoch eine etwas andere Architektur erfordert mit dem großen Vorteil der expliziten Information, welche Ressourcen gerade in Bearbeitung sind. Ein weiterer, noch größerer Vorteil scheint mir zu sein, auf jegliche Locks (<code>mutex_t</code>) verzichten zu können und damit eine potenzielle Fehlerquelle <b>komplett auszuschließen</b> !</p>
+<p>Aus den Ausführungen sollte klar werden, daß der Aufwand nicht höher ist, jedoch eine etwas andere Architektur erfordert mit dem großen Vorteil der expliziten Information, welche Ressourcen gerade in Bearbeitung sind. Ein weiterer, noch größerer Vorteil scheint mir zu sein, auf jegliche Locks (<code>mutex_t</code>) verzichten zu können und damit eine potenzielle Fehlerquelle <b>komplett auszuschließen</b>!</p>
 
 <p>Zusätzlich ist noch eine Art von synchronem Task zu programmieren, im vorherigen Entwurfsdokument als <code>exothread_t</code> bezeichnet, im folgenden Beispiel als <code>synctask_t</code>. Auch wenn sich der Name noch ändern wird, so ist es mit dieser Technik möglich, ein Taskswitching in C zu implementieren, ohne auf Threads zurückgreifen zu müssen.</p>
 
