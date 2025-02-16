@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang='de'>
+<head>
+   <meta charset='utf-8' />
+   <meta content='Hidden State' name='description' />
+   <meta content='Jörg Seebohn' name='author' />
+   <title>Hidden-State</title>
+   <link href='/favicon.png' rel='icon' type='image/png' />
+   <link href='/je-so.css' rel='stylesheet' media='all' />
+   <link href='/c-lang.css' rel='stylesheet' media='all' />
+   <style>
+   cite::before {
+      content: "»";
+      padding-right: 0.1em;
+   }
+   cite::after {
+      content: "«";
+      padding-left: 0.1em;
+   }
+   abbr {
+      font-family: FreeMono;
+   }
+   </style>
+</head>
+<body>
+
+<h1 class='title'>Information Hiding</h1>
+<h2 class='subtitle'>Zusammenhänge versteckter Information</h2>
+<div class='date'>Montag, 17. Februar 2025</div>
+<nav class='link'><a href='datalist.html'>«</a><a href='../index.html'>&#8962;</a><a>»</a></nav>
+
+<h3>Allgemein</h3>
+<p>
+   Das Geheimhaltungsprinzip ist sicherlich so alt wie die Menschheit selbst. Und wird auf Basis des <cite>need to know</cite> zum Herrschaftsprinzip.
+   <abbr>IT</abbr> bezogen ist die gängige Praxis, Informationen in Objekte zu kapseln und diese hinter einer Schnittstelle zu verbergen.
+   Vor der <abbr style="font-variant: small-caps;">Objekt-Orientierung</abbr> sprach man von Modularisierung - immer noch ein gängiger Begriff.
+</p>
+<p>
+   Durch verstecken der Informationen hinter einer Grenze &ndash; der Schnittstelle (Interface) &ndash; wird die Struktur in ein Innen und Außen
+   unterteilt. Die ins innere gewanderten Implementierungsdetails somit verborgen, jedoch über die gezielte Beschreibung des Interfaces in abstrahierter Form wieder sichtbar gemacht.
+</p>
+<p>
+   Wird im Inneren auf versteckte (nicht per Schnittstelle übergebene) und sich zeitlich ändernde Informationen zugegriffen, spricht man von <cite>hidden state</cite>.
+</p>
+<h4>Das Innen und Außen</h4>
+<p>
+   Wichtig zu erwähnen ist, dass fehlende Details einer nach außen gerichteten Abstraktion im Inneren der strukturellen Einheit sichbar sind.
+   Die Wartung kleinerer Einheiten sollte nicht mit teuren Ausgrabungen der Details verbunden sein.
+</p>
+
+<h3>Architektur und Struktur</h3>
+<p>Mit Strukturierung der Software in Einheiten verschiedener Granularität &ndash; etwa Substysteme, Schichten, Module, Komponenten usw. &ndash;
+   bauen wir eine Architektur, die Informationen nach dem Prinzip <cite>Separation of Concerns</cite> in selbst festgelegte Bereiche gliedert.
+   Die tragende, das gesamte System verbindende Struktur fügt Informationen hinzu, die Details der in die verschiedenen Organi&shy;sa&shy;tions&shy;einheiten verschobenen Informationen werden verborgen.
+</p>
+<h4>Sichtbarmachung</h4>
+<p>
+   Damit hinzugefügte Information nicht selbst wieder während der Wartung teuer wiederentdeckt werden muss, ist auf gute Sichtbarkeit zu achten,
+   erreichbar mittels Dokumentation oder spezieller Auszeichnung im Quellcode.
+</p>
+
+<h3>Versteckte räumliche und zeitliche Zusammenhänge</h3>
+<p>
+   Wird etwa das <cite>DRY Prinzip (Don't Repeat Yourself)</cite> verletzt,
+   indem die Berechnung, ob ein Student ein Examen bestanden hat oder nicht,
+   mehrfach im Source steht, z.B. in der Be&shy;nutzer&shy;schnittstelle
+   sowie im Code zur PDF Generierung,
+</p>
+<pre class="diagram Clang"><span class="type">boolean</span> studentPassedExam = exam.getPoints() > <span class="char">40</span>;</pre>
+<p>
+   entsteht eine nicht offensichtliche, versteckte Kopplung zwischen Komponenten.
+   Soll nachträglich die Grenze, ob ein Test bestanden wurde, geändert werden, sind
+   alle betroffenen Komponenten zu ändern. Entweder wird das boolesche Prädikat gemäß DRY in den
+   Examenstyp verschoben oder zumindest die Konstante <code>40</code> extrahiert.
+   Durch Bezugnahme auf eine Konstante wird der räumliche Zusammenhang offensichtlich.
+</p>
+<pre class="diagram Clang"><span class="key">class</span> Exam { <span class="type">static int</span> pointsToPassExam = <span class="char">40</span>; }
+<span class="type">boolean</span> studentPassedExam = exam.getPoints() > Exam.<span class="char">pointsToPassExam</span></pre>
+<p>
+   Zudem existiert noch eine zeitlich gesehen versteckte Abhängigkeit bei Änderung der Punktegrenze.
+   Nach Änderung des Wertes werden auch ältere, schon bewertete Examen bei Neuauswertung mit der neuen Formel berechnet.
+   Der sich zeitlich ändernde Wert <code>pointsToPassExam</code> ist demnach entweder als zusätzlicher Zustand im Examenstyp zu speichern oder das davon abhängige Ergebnis der Auswertung.
+</p>
+<pre class="diagram Clang"><span class="key">class</span> Exam { <span class="type">int</span> pointsToPassExam = <span class="char">40</span>;
+              <span class="comment">/* keeps same for already evaluated exams
+                 but differs between exams over time */</span> }
+<span class="type">boolean</span> studentPassedExam = exam.getPoints() > exam.<span class="char">pointsToPassExam</span></pre>
+
+<h3>Abstraktionen</h3>
+<p>
+   Werden Implementierungsdetails in Komponenten abstrahiert, entstehen möglicherweise versteckte Abhängigkeiten und damit eine <cite>leaky abstraction</cite>.
+   Man verschiebt sozusagen die Komplexität von einer Phase auf eine zeitlich spätere.
+</p>
+<p>
+   Beispiele sind Zugriffe auf Standardbibliotheksfunktionen, auf das Dateisystem, Services etc.
+</p>
+<pre class="diagram Clang">
+   <span class="type">void</span> method1() { <span class="type">...</span> malloc(sizeof(LIST_HEAD)) <span class="type">...</span> }
+   <span class="type">Config</span> method2() { <span class="type">...</span> open(<span class="string">"/config-path"</span>, O_RDONLY) <span class="type">...</span> }
+   <span class="type">function</span> method3() { <span class="type">...</span> <span class="key">await</span> fetch(<span class="string">"/webservice"</span>) <span class="type">...</span> }
+</pre>
+<p>
+   Möchte man die erste Komponente (method1) in einem embedded Projekt mit eigener statischer Speicherverwaltung wiederverwenden,
+   scheitert man. Verwendet man die zweite Komponente (method2), so ist der Administrator des Systems gefordert,
+   den Dateizugriff auf die Konfigurationsdatei bei der Installation abzusichern, die Abstraktion verursacht also einen Security-Leakage, aber auch noch weitere.
+   Komponente drei (method3) verursacht eine Laufzeitabhängigkeit zu einem speziellen Service und verursacht Probleme während der Testphase.
+</p>
+<p>
+   Um diese Abhängigkeiten nicht nur zu verschieben, sondern sichtbar zu machen, wird mittels <cite>Dependency Injection (DI)</cite>
+   die Abstraktion gezielt durchbrochen und bei Erzeugung der Komponente der verwendete
+   Speicher-Allokator, Persistenz- bzw. Web-Service übergeben.
+</p>
+<p>
+   Problematisch wird es nur, wenn das verwendete DI-Framework kompliziert zu bedienen ist und daher
+   das eigentliche Problem in eine Konfigurations-Hölle umgewandelt wird.
+   Dokumentiert werden müssen die Umgebungs-Abhängigkeiten für die DevOps-Teams in jedem Fall.
+</p>
+<p>
+   Zusammenhänge über Abstraktionsebenen (Grenzen) hinweg sichtbar zu machen und zu verwalten
+   ist mit unseren heutigen Entwicklungsumgebungen noch nicht möglich und muss daher statisch dokumentiert werden.
+   Das wird aber oft nicht gemacht bzw. die Dokumentation vergessen anzupassen. Oder die Zusammenhänge werden in kryptischen Konfigurationsdateien dargestellt.
+   Eine anderer Weg ist die Verwendung domänenspezifischer Sprachen (Konfigurationssyntax ist eine solche).
+   Das Problem mit diesen Ansätzen ist die Separation, die fehlende Integration.
+   Lösungen dazu zeichnen sich erst am Horizont ab.
+</p>
+
+
+<h3>Abschlussworte</h3>
+<p>
+   Informationen zu kapseln, um die Auswirkungen bei Änderung zu begrenzen, ist ein probates Mittel, um Komplexität zu beherrschen.
+   Im Gegenzug (Yin und Yang) ist darauf zu achten, dass Informationen offensichtlich gemacht werden, so denn darauf zurückgegriffen werden muss.
+</p>
+<p>
+   Dinge offensichtlich zu machen ist effizient und wirtschaftlich,
+   widerspricht aber dem Herrschaftsprinzip. Der Softwareentwickler
+   macht sich somit entbehrlich und schützt sich nicht vor möglicher Arbeits&shy;losigkeit.
+</p>
+
+<div class='footer'>&copy; 2025 Jörg Seebohn &mdash; Das Kopieren und das unentgeltliche Weitergeben ist erlaubt.</div>
+</body>
+</html>

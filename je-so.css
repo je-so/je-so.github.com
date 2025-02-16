@@ -33,6 +33,11 @@ ol,ul {
 @font-face { font-family: FreeMono; font-weight: bold; src: url(fonts/FreeMonoBold.ttf); }
 @font-face { font-family: FreeMono; font-weight: bold; font-style: italic; src: url(fonts/FreeMonoBoldOblique.ttf); }
 
+:root {
+   --header-color: #AE763B;
+   font-size: 16px;
+}
+
 /*
  * <a> element *
  */
@@ -196,7 +201,7 @@ body {
    color: #333; font: normal 11.7pt 'Liberation Sans',Arial,Helvetica,sans-serif;
    margin: 14pt auto 28pt; padding: 1em 2em;
    position: relative;
-   width: 45em;
+   width: 45rem;
 }
 
 .footer {
